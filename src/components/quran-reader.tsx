@@ -464,7 +464,6 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="space-y-2"
-                        style={{ contentVisibility: "auto", containIntrinsicSize: "0 80px" }}
                       >
                         <div className="flex items-center justify-between">
                           <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-900/20">
