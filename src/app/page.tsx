@@ -21,6 +21,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ApiTester } from "@/components/api-tester"
 import { LanguageShowcase } from "@/components/language-showcase"
 import { Badge } from "@/components/ui/badge"
+import { LANGUAGE_MAP } from "@/lib/quran-utils"
 
 export const metadata: Metadata = {
   title: "Al-Quran API - Multilingual Quran API with Translations & Search",
@@ -29,6 +30,7 @@ export const metadata: Metadata = {
 }
 
 export default function HomePage() {
+  const languages = Object.values(LANGUAGE_MAP)
   return (
     <>
       {/* Hero Section */}
@@ -257,7 +259,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="mx-auto max-w-5xl py-12">
-            <LanguageShowcase />
+            <LanguageShowcase languages={languages} />
           </div>
         </div>
       </section>

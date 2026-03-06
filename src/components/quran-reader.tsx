@@ -47,16 +47,18 @@ interface ApiResponse {
 
 interface QuranReaderProps {
   baseUrl: string
+  initialLanguages?: Language[]
+  initialSurahs?: Surah[]
 }
 
-function QuranReaderInner({ baseUrl }: QuranReaderProps) {
-  const [languages, setLanguages] = useState<Language[]>([])
+function QuranReaderInner({ baseUrl, initialLanguages, initialSurahs }: QuranReaderProps) {
+  const [languages, setLanguages] = useState<Language[]>(initialLanguages || [])
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en")
-  const [surahs, setSurahs] = useState<Surah[]>([])
+  const [surahs, setSurahs] = useState<Surah[]>(initialSurahs || [])
   const [selectedSurah, setSelectedSurah] = useState<number>(1)
   const [verses, setVerses] = useState<Verse[]>([])
-  const [isLoadingLanguages, setIsLoadingLanguages] = useState<boolean>(true)
-  const [isLoadingSurahs, setIsLoadingSurahs] = useState<boolean>(true)
+  const [isLoadingLanguages, setIsLoadingLanguages] = useState<boolean>(!initialLanguages)
+  const [isLoadingSurahs, setIsLoadingSurahs] = useState<boolean>(!initialSurahs)
   const [isLoadingVerses, setIsLoadingVerses] = useState<boolean>(true)
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [isSearching, setIsSearching] = useState<boolean>(false)
@@ -70,8 +72,10 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  // Fetch languages
+  // Fetch languages (skip if provided via props)
   useEffect(() => {
+    if (initialLanguages && initialLanguages.length > 0) return
+
     const fetchLanguages = async () => {
       try {
         setIsLoadingLanguages(true)
@@ -117,12 +121,13 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
     }
 
     fetchLanguages()
-  }, [baseUrl])
+  }, [baseUrl, initialLanguages])
 
-  // Fetch surahs when language changes
+  // Fetch surahs when language changes (skip initial fetch if provided via props)
   useEffect(() => {
     const fetchSurahs = async () => {
       if (!selectedLanguage) return
+      if (initialSurahs && initialSurahs.length > 0 && selectedLanguage === "en") return
 
       try {
         setIsLoadingSurahs(true)
@@ -575,7 +580,11 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
 export function QuranReader(props: QuranReaderProps) {
   return (
     <Suspense fallback={<Skeleton className="h-[800px] w-full" />}>
-      <QuranReaderInner {...props} />
+      <QuranReaderInner
+        baseUrl={props.baseUrl}
+        initialLanguages={props.initialLanguages}
+        initialSurahs={props.initialSurahs}
+      />
     </Suspense>
   )
 }
