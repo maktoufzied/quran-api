@@ -6,7 +6,11 @@ import { Book } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ApiEndpoints } from "@/components/api-endpoints"
+import dynamic from "next/dynamic"
+
+const ApiEndpoints = dynamic(() => import("@/components/api-endpoints").then(mod => ({ default: mod.ApiEndpoints })), {
+  loading: () => <div className="h-[600px] w-full animate-pulse bg-muted rounded-lg" />,
+})
 
 export default function DocumentationPageClient() {
   return (

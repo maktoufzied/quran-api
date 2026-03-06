@@ -18,8 +18,14 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ApiTester } from "@/components/api-tester"
-import { LanguageShowcase } from "@/components/language-showcase"
+import dynamic from "next/dynamic"
+
+const ApiTester = dynamic(() => import("@/components/api-tester").then(mod => ({ default: mod.ApiTester })), {
+  loading: () => <div className="h-[600px] w-full animate-pulse bg-muted rounded-lg" />,
+})
+const LanguageShowcase = dynamic(() => import("@/components/language-showcase").then(mod => ({ default: mod.LanguageShowcase })), {
+  loading: () => <div className="h-[200px] w-full animate-pulse bg-muted rounded-lg" />,
+})
 import { Badge } from "@/components/ui/badge"
 
 export const metadata: Metadata = {

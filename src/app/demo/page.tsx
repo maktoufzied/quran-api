@@ -1,5 +1,9 @@
 import type { Metadata } from "next"
-import { QuranReader } from "@/components/quran-reader"
+import dynamic from "next/dynamic"
+
+const QuranReader = dynamic(() => import("@/components/quran-reader").then(mod => ({ default: mod.QuranReader })), {
+  loading: () => <div className="h-[800px] w-full animate-pulse bg-muted rounded-lg" />,
+})
 
 export const metadata: Metadata = {
   title: "Demo App - Al-Quran API",

@@ -122,11 +122,11 @@ export default function RootLayout({
           </div>
         </ThemeProvider>
 
-        {/* Google Analytics */}
-        <Script strategy="afterInteractive" src="https://www.googletagmanager.com/gtag/js?id=G-1W3WDXDHR6" />
+        {/* Google Analytics — deferred to avoid blocking hydration */}
+        <Script strategy="lazyOnload" src="https://www.googletagmanager.com/gtag/js?id=G-1W3WDXDHR6" />
         <Script
           id="google-analytics"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
             window.dataLayer = window.dataLayer || [];
