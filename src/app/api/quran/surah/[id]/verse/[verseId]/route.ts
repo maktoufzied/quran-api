@@ -33,8 +33,8 @@ export async function GET(request: Request, { params }: { params: { id: string; 
       return NextResponse.json({ error: "Failed to load Quran data" }, { status: 500 })
     }
 
-    // Find the requested surah
-    const surah = quranData.find((s: any) => s.id === surahId)
+    // Get the requested surah by index (IDs are sequential 1-114)
+    const surah = quranData[surahId - 1]
 
     if (!surah) {
       return NextResponse.json({ error: "Surah not found" }, { status: 404 })
