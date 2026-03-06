@@ -15,8 +15,11 @@ export async function GET(request: Request) {
     // Get the file name
     const fileName = getQuranFileName(lang)
 
-    // Fetch the file
-    const quranData = await fetchJsonFile(fileName, baseUrl)
+    // Fetch Quran data and available languages in parallel
+    const [quranData, languages] = await Promise.all([
+      fetchJsonFile(fileName, baseUrl),
+      getAvailableLanguages(baseUrl),
+    ])
 
     if (!quranData) {
       return NextResponse.json({ error: "Failed to load Quran data" }, { status: 500 })
@@ -31,9 +34,6 @@ export async function GET(request: Request) {
       type: surah.type,
       total_verses: surah.total_verses,
     }))
-
-    // Get available languages
-    const languages = await getAvailableLanguages(baseUrl)
 
     return NextResponse.json({
       language: lang,

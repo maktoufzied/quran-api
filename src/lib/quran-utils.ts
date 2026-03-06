@@ -104,23 +104,17 @@ export async function isLanguageSupported(lang: string, baseUrl?: string): Promi
 
 // Get a fallback language if the requested one is not available
 export async function getFallbackLanguage(requestedLang: string, baseUrl?: string): Promise<string> {
-  if (await isLanguageSupported(requestedLang, baseUrl)) {
-    return requestedLang
-  }
+  // Check requested language and all fallbacks in parallel
+  const fallbacks = ["en", "ar", "bn"]
+  const langsToCheck = [requestedLang, ...fallbacks.filter(f => f !== requestedLang)]
 
-  // Try English first
-  if (await isLanguageSupported("en", baseUrl)) {
-    return "en"
-  }
+  const results = await Promise.all(
+    langsToCheck.map(lang => isLanguageSupported(lang, baseUrl))
+  )
 
-  // Try Arabic next
-  if (await isLanguageSupported("ar", baseUrl)) {
-    return "ar"
-  }
-
-  // Try Bengali next (since this is a Bangla Quran API)
-  if (await isLanguageSupported("bn", baseUrl)) {
-    return "bn"
+  // Return the first supported language
+  for (let i = 0; i < langsToCheck.length; i++) {
+    if (results[i]) return langsToCheck[i]
   }
 
   // Last resort fallback
@@ -130,15 +124,16 @@ export async function getFallbackLanguage(requestedLang: string, baseUrl?: strin
 // Get available languages by checking which files exist
 export async function getAvailableLanguages(baseUrl?: string): Promise<Language[]> {
   try {
-    const languages: Language[] = []
     const languageCodes = Object.keys(LANGUAGE_MAP)
 
-    // Check each language
-    for (const code of languageCodes) {
-      if (await isLanguageSupported(code, baseUrl)) {
-        languages.push(LANGUAGE_MAP[code])
-      }
-    }
+    // Check all languages in parallel
+    const results = await Promise.all(
+      languageCodes.map(code => isLanguageSupported(code, baseUrl))
+    )
+
+    const languages = languageCodes
+      .filter((_, index) => results[index])
+      .map(code => LANGUAGE_MAP[code])
 
     // If no languages found, return English as fallback
     if (languages.length === 0) {
