@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { useLanguages } from "@/hooks/use-languages"
 import type { Language, AudioData } from "@/lib/quran-utils"
 
 interface Surah {
@@ -50,12 +51,11 @@ interface QuranReaderProps {
 }
 
 function QuranReaderInner({ baseUrl }: QuranReaderProps) {
-  const [languages, setLanguages] = useState<Language[]>([])
+  const { languages, isLoading: isLoadingLanguages } = useLanguages(baseUrl)
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en")
   const [surahs, setSurahs] = useState<Surah[]>([])
   const [selectedSurah, setSelectedSurah] = useState<number>(1)
   const [verses, setVerses] = useState<Verse[]>([])
-  const [isLoadingLanguages, setIsLoadingLanguages] = useState<boolean>(true)
   const [isLoadingSurahs, setIsLoadingSurahs] = useState<boolean>(true)
   const [isLoadingVerses, setIsLoadingVerses] = useState<boolean>(true)
   const [searchQuery, setSearchQuery] = useState<string>("")
@@ -69,55 +69,6 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
   const [currentVerse, setCurrentVerse] = useState<number | null>(null)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
-
-  // Fetch languages
-  useEffect(() => {
-    const fetchLanguages = async () => {
-      try {
-        setIsLoadingLanguages(true)
-        setError(null)
-
-        const response = await fetch(`${baseUrl}/api/quran/languages`)
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch languages: ${response.status} ${response.statusText}`)
-        }
-
-        const data = (await response.json()) as ApiResponse
-
-        if (data.error) {
-          throw new Error(data.error)
-        }
-
-        setLanguages(data.languages || [])
-
-        // Set default language if available
-        if (data.languages && data.languages.length > 0) {
-          // Prefer English if available
-          const englishLang = data.languages.find((lang: Language) => lang.code === "en")
-          if (englishLang) {
-            setSelectedLanguage("en")
-            setDirection("ltr")
-          } else {
-            setSelectedLanguage(data.languages[0].code)
-            setDirection(data.languages[0].direction)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch languages:", error)
-        setError(error instanceof Error ? error.message : "Failed to fetch languages")
-        // Set default languages as fallback
-        setLanguages([
-          { code: "en", name: "English", nativeName: "English", direction: "ltr" },
-          { code: "ar", name: "Arabic", nativeName: "العربية", direction: "rtl" },
-        ])
-      } finally {
-        setIsLoadingLanguages(false)
-      }
-    }
-
-    fetchLanguages()
-  }, [baseUrl])
 
   // Fetch surahs when language changes
   useEffect(() => {

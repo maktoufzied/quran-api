@@ -1,59 +1,12 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
 import { motion } from "framer-motion"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import type { Language } from "@/lib/quran-utils"
+import { useLanguages } from "@/hooks/use-languages"
 
-interface ApiResponse {
-  languages?: Language[]
-  error?: string
-}
-
-function LanguageShowcaseInner() {
-  const [languages, setLanguages] = useState<Language[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchLanguages = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-
-        const response = await fetch("https://alquran-api.pages.dev/api/quran/languages")
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch languages: ${response.status} ${response.statusText}`)
-        }
-
-        const data = (await response.json()) as ApiResponse
-
-        if (data.error) {
-          throw new Error(data.error)
-        }
-
-        setLanguages(data.languages || [])
-      } catch (error) {
-        console.error("Failed to fetch languages:", error)
-        setError(error instanceof Error ? error.message : "Failed to fetch languages")
-        // Set default languages as fallback
-        setLanguages([
-          { code: "ar", name: "Arabic", nativeName: "العربية", direction: "rtl" },
-          { code: "bn", name: "Bengali", nativeName: "বাংলা", direction: "ltr" },
-          { code: "en", name: "English", nativeName: "English", direction: "ltr" },
-          { code: "fr", name: "French", nativeName: "Français", direction: "ltr" },
-          { code: "id", name: "Indonesian", nativeName: "Bahasa Indonesia", direction: "ltr" },
-          { code: "ur", name: "Urdu", nativeName: "اردو", direction: "rtl" },
-        ])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchLanguages()
-  }, [])
+export function LanguageShowcase() {
+  const { languages, isLoading } = useLanguages("https://alquran-api.pages.dev")
 
   if (isLoading) {
     return (
@@ -83,22 +36,6 @@ function LanguageShowcaseInner() {
         </motion.div>
       ))}
     </div>
-  )
-}
-
-export function LanguageShowcase() {
-  return (
-    <Suspense
-      fallback={
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-lg" />
-          ))}
-        </div>
-      }
-    >
-      <LanguageShowcaseInner />
-    </Suspense>
   )
 }
 

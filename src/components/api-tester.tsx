@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, Suspense } from "react"
 import { Copy, ExternalLink, Globe } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -11,10 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
-import type { Language } from "@/lib/quran-utils"
+import { useLanguages } from "@/hooks/use-languages"
 
 interface ApiResponse {
-  languages?: Language[]
   error?: string
   [key: string]: any
 }
@@ -28,58 +27,12 @@ function ApiTesterInner({ baseUrl }: ApiTesterProps) {
   const [verseNumber, setVerseNumber] = useState<string>("")
   const [apiUrl, setApiUrl] = useState<string>("")
   const [responseJson, setResponseJson] = useState<string>("")
-  const [languages, setLanguages] = useState<Language[]>([])
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en")
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [endpoint, setEndpoint] = useState<string>("")
 
-  useEffect(() => {
-    // Fetch available languages
-    const fetchLanguages = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-
-        const response = await fetch(`${baseUrl}/api/quran/languages`)
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch languages: ${response.status} ${response.statusText}`)
-        }
-
-        const data = (await response.json()) as ApiResponse
-
-        if (data.error) {
-          throw new Error(data.error)
-        }
-
-        setLanguages(data.languages || [])
-
-        // Set default language if available
-        if (data.languages && data.languages.length > 0) {
-          // Prefer English if available
-          const englishLang = data.languages.find((lang: Language) => lang.code === "en")
-          if (englishLang) {
-            setSelectedLanguage("en")
-          } else {
-            setSelectedLanguage(data.languages[0].code)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch languages:", error)
-        setError(error instanceof Error ? error.message : "Failed to fetch languages")
-        // Set default languages as fallback
-        setLanguages([
-          { code: "en", name: "English", nativeName: "English", direction: "ltr" },
-          { code: "ar", name: "Arabic", nativeName: "العربية", direction: "rtl" },
-        ])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchLanguages()
-  }, [baseUrl])
+  const { languages, isLoading: isLoadingLanguages } = useLanguages(baseUrl)
 
   const generateApiUrl = (type: string) => {
     setEndpoint(type)
@@ -183,7 +136,7 @@ function ApiTesterInner({ baseUrl }: ApiTesterProps) {
             <h3 className="font-medium">Select Language</h3>
           </div>
 
-          {isLoading && !languages.length ? (
+          {isLoadingLanguages ? (
             <Skeleton className="h-10 w-full" />
           ) : (
             <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>

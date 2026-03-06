@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { ArrowLeft, Book, Globe, SearchIcon } from "lucide-react"
-import type { Language } from "@/lib/quran-utils"
+import { useLanguages } from "@/hooks/use-languages"
 
 interface SearchResult {
   surah: {
@@ -35,7 +35,6 @@ interface SearchResponse {
 }
 
 interface ApiResponse {
-  languages?: Language[]
   error?: string
   language?: string
   query?: string
@@ -48,57 +47,10 @@ export default function SearchPage() {
   const [query, setQuery] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null)
-  const [languages, setLanguages] = useState<Language[]>([])
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en")
-  const [isLoadingLanguages, setIsLoadingLanguages] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    // Fetch available languages
-    const fetchLanguages = async () => {
-      try {
-        setIsLoadingLanguages(true)
-        setError(null)
-
-        const response = await fetch("/api/quran/languages")
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch languages: ${response.status} ${response.statusText}`)
-        }
-
-        const data = (await response.json()) as ApiResponse
-
-        if (data.error) {
-          throw new Error(data.error)
-        }
-
-        setLanguages(data.languages || [])
-
-        // Set default language if available
-        if (data.languages && data.languages.length > 0) {
-          // Prefer English if available
-          const englishLang = data.languages.find((lang: Language) => lang.code === "en")
-          if (englishLang) {
-            setSelectedLanguage("en")
-          } else {
-            setSelectedLanguage(data.languages[0].code)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch languages:", error)
-        setError(error instanceof Error ? error.message : "Failed to fetch languages")
-        // Set default languages as fallback
-        setLanguages([
-          { code: "en", name: "English", nativeName: "English", direction: "ltr" },
-          { code: "ar", name: "Arabic", nativeName: "العربية", direction: "rtl" },
-        ])
-      } finally {
-        setIsLoadingLanguages(false)
-      }
-    }
-
-    fetchLanguages()
-  }, [])
+  const { languages, isLoading: isLoadingLanguages } = useLanguages()
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
