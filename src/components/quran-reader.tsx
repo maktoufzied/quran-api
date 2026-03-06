@@ -119,6 +119,14 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
     fetchLanguages()
   }, [baseUrl])
 
+  // Update direction when language changes
+  useEffect(() => {
+    const lang = languages.find((l) => l.code === selectedLanguage)
+    if (lang) {
+      setDirection(lang.direction)
+    }
+  }, [selectedLanguage, languages])
+
   // Fetch surahs when language changes
   useEffect(() => {
     const fetchSurahs = async () => {
@@ -141,12 +149,6 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
         }
 
         setSurahs(data.surahs || [])
-
-        // Update direction based on selected language
-        const lang = languages.find((l) => l.code === selectedLanguage)
-        if (lang) {
-          setDirection(lang.direction)
-        }
       } catch (error) {
         console.error("Failed to fetch surahs:", error)
         setError(error instanceof Error ? error.message : "Failed to fetch surahs")
@@ -156,7 +158,7 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
     }
 
     fetchSurahs()
-  }, [baseUrl, selectedLanguage, languages])
+  }, [baseUrl, selectedLanguage])
 
   // Fetch verses when surah changes
   useEffect(() => {
@@ -192,7 +194,7 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
     fetchVerses()
   }, [baseUrl, selectedSurah, selectedLanguage])
 
-  // Handle audio playback
+  // Handle audio playback — set up once since audioRef is stable
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.onended = () => {
@@ -200,7 +202,7 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
         setCurrentVerse(null)
       }
     }
-  }, [audioRef])
+  }, [])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -265,15 +267,11 @@ function QuranReaderInner({ baseUrl }: QuranReaderProps) {
   }
 
   const nextSurah = () => {
-    if (selectedSurah < 114) {
-      setSelectedSurah(selectedSurah + 1)
-    }
+    setSelectedSurah(prev => Math.min(prev + 1, 114))
   }
 
   const prevSurah = () => {
-    if (selectedSurah > 1) {
-      setSelectedSurah(selectedSurah - 1)
-    }
+    setSelectedSurah(prev => Math.max(prev - 1, 1))
   }
 
   const playAudio = (verse: Verse) => {
